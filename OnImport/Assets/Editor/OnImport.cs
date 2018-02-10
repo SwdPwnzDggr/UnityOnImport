@@ -10,11 +10,10 @@ public class OnImport : EditorWindow
     bool myBool = true;
     float myFloat = 1.23f;
 
-    public enum AssetType { NotSelected,Audio,Material,Model,Texture}
+    enum AssetType { NotSelected,Audio,Material,Model,Texture}
     AssetType assetType = AssetType.NotSelected;
 
-    enum TextureType { Default, NormalMap, EditorGUIAndLegacyGUI, Sprite, Cursor, Cookie, Lightmap, SingleChannel };
-
+    TextureImportGUI textureImporter;
 
 
     // Add menu item named "My Window" to the Window menu
@@ -65,14 +64,11 @@ public class OnImport : EditorWindow
 
     void DisplayTextureOptions()
     {
-        GUILayout.Label("Texture Import Settings", EditorStyles.boldLabel);
-        GUILayout.Label("Base Settings", EditorStyles.miniLabel);
-        TextureType type = TextureType.Default;
-        type = (TextureType)EditorGUILayout.EnumPopup("Texture Type", type); ;
-        if (GUILayout.Button("Generate"))
+        if (textureImporter == null)
         {
-            CreateScript();
+            textureImporter = new TextureImportGUI();
         }
+        textureImporter.DisplayGUI();
     }
     void DisplayMaterialOptions()
     {
