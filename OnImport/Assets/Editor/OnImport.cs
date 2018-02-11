@@ -14,6 +14,7 @@ public class OnImport : EditorWindow
     AssetType assetType = AssetType.NotSelected;
 
     TextureImportGUI textureImporter;
+    AudioImportGUI audioImporter;
 
 
     // Add menu item named "My Window" to the Window menu
@@ -54,12 +55,11 @@ public class OnImport : EditorWindow
 
     void DisplayAudioOptions()
     {
-        GUILayout.Label("Audio Import Settings", EditorStyles.boldLabel);
-
-        if (GUILayout.Button("Generate"))
+        if (audioImporter == null)
         {
-            CreateScript();
+            audioImporter = new AudioImportGUI();
         }
+        audioImporter.DisplayGUI();
     }
 
     void DisplayTextureOptions()

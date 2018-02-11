@@ -1,43 +1,67 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.AnimatedValues;
 using UnityEngine;
 
 public class TextureImportGUI
 {
-    enum TextureType { Default, NormalMap, EditorGUIAndLegacyGUI, Sprite, Cursor, Cookie, Lightmap, SingleChannel };
-    TextureType type = TextureType.Default;
+    //Base Texture Settings
+    //enum TextureType { Default, NormalMap, EditorGUIAndLegacyGUI, Sprite, Cursor, Cookie, Lightmap, SingleChannel };
+    TextureImporterType textureType = TextureImporterType.Default;
+    //enum TextureShape { TwoDimensional, Cube }
+    TextureImporterShape textureShape = TextureImporterShape.Texture2D;
 
-    enum TextureShape { TwoDimensional, Cube }
-    TextureShape shape = TextureShape.TwoDimensional;
-
-    enum AlphaSource { None, InputTextureAlpha, FromGrayscale }
-    AlphaSource alphaSource = AlphaSource.None;
-
-    bool alphaIsTransparency = false;
-
-    bool sRGB = true;
-
-    enum NonPowerofTwo { None, ToNearest, ToSmallest, ToLargest }
-    NonPowerofTwo nonPowerofTwo = NonPowerofTwo.None;
+    //Alpha and Texture Settings
+    //enum AlphaSource { None, InputTextureAlpha, FromGrayscale }
+    TextureImporterAlphaSource alphaSource = TextureImporterAlphaSource.None;
+    bool alphaIsTransparency = false; //Goes to TextureImporter.alphaIsTransparency
+    bool sRGB = true; //Goes to TextureImporter.sRGBTexture
     
+    //Advanced Settings
+    //enum NonPowerofTwo { None, ToNearest, ToSmallest, ToLargest }
+    TextureImporterNPOTScale nonPowerofTwo = TextureImporterNPOTScale.None;
     bool readWriteEnabled = true;
     bool generateMipMaps = true;
     bool borderMipMaps = true;
     bool fadeoutMipMaps = false;
-
-    enum MipMapFiltering { Box, Kaiser }
-    MipMapFiltering mipMapFiltering = MipMapFiltering.Box;
-
+    //enum MipMapFiltering { Box, Kaiser }
+    TextureImporterMipFilter mipMapFiltering = TextureImporterMipFilter.BoxFilter;
+    
+    //Wrap and FilterMode
     enum WrapMode { Clamp, Repeat }
     WrapMode wrapMode = WrapMode.Clamp;
-
     enum FilterMode { Point, Bilinear, Triliner }
     FilterMode filterMode = FilterMode.Point;
+    int anisoLevel = 0; // Max 16
 
-    int anisoLevel = 0;
+    // Normal Map 
+    bool createAlphaFromGrayscale = false;
+    float bumpiness = 0.1f; //Max .3
+    enum NormalBumpFiltering { Sharp, Smooth }
+    NormalBumpFiltering normalBumpFiltering = NormalBumpFiltering.Sharp;
 
+    // Sprite
+    enum SpriteMode { Single, Multiple, Polygon }
+    SpriteMode spriteMode = SpriteMode.Single;
+    string packingTag;
+    float pixelsPerUnit = 100; //Min 0
+    enum MeshType { Tight, FullRect }
+    MeshType meshType = MeshType.Tight;
+    int extrudeEdges = 0; //Max 32
+    enum Pivot { Center, TopLeft, Top, TopRight, Left, Right, BottomLeft, Bottom, BottomRight, Custom }
+    Pivot pivot = Pivot.Center;
+    Vector2 pivotPoint;
+
+    // Cookie 
+    enum LightType { Spotlight, Directional, Point }
+    LightType lightType = LightType.Spotlight;
+
+    // Cube Map
+    enum MappingType { Spheremap, Cylindrical, Cubic, Auto }
+    MappingType mappingType = MappingType.Spheremap;
+    enum ConvolutionType { None, Specular, Diffuse }
+    ConvolutionType convolutionType = ConvolutionType.None;
+    bool fixupEdgeSeams = false;
 
 
     public void DisplayGUI()
@@ -45,7 +69,7 @@ public class TextureImportGUI
         GUILayout.Label("Texture Import Settings", EditorStyles.boldLabel);
         GUILayout.Label("Base Settings", EditorStyles.miniBoldLabel);
 
-        type = (TextureType)EditorGUILayout.EnumPopup("Texture Type", type);
+        textureType = (TextureImporterType)EditorGUILayout.EnumPopup("Texture Type", textureType);
 
         DisplayTextureTypeSpecificOptions();
 
@@ -57,61 +81,51 @@ public class TextureImportGUI
 
     private void DisplayTextureTypeSpecificOptions()
     {
-        switch (type)
+        switch (textureType)
         {
-            case TextureType.Default:
+            case TextureImporterType.Default:
                 DisplayTextureShape();
                 Display_sRGBSettings();
                 DisplayAlphaSourceSettings();
                 DisplayAdvancedSettings();
                 DisplayWrapAndFilterSettings();
                 break;
-            case TextureType.NormalMap:
+            case TextureImporterType.NormalMap:
                 DisplayTextureShape();
-                //Create from Greyscale
-                    //if yes
-                    //Bumpiness
-                    //Filtering
+                DisplayNormalAlphaFromGrayscaleSettings();
                 DisplayAdvancedSettings();
                 DisplayWrapAndFilterSettings();
                 break;
-            case TextureType.EditorGUIAndLegacyGUI:
+            case TextureImporterType.GUI:
                 DisplayAlphaSourceSettings();
                 DisplayAdvancedSettings();
                 DisplayWrapAndFilterSettings();
                 break;
-            case TextureType.Sprite:
-                //Sprite Mode
-                //Packing Tag
-                //Pixels Per Unit
-                //MeshType
-                //Extrude Edges
-                //If Single Sprite Mode 
-                    //Pivot
-                    
-                Display_sRGBSettings();
-                DisplayAlphaSourceSettings();
-                DisplayAdvancedSettings();
-                    
-                DisplayWrapAndFilterSettings();
-                break;
-            case TextureType.Cursor:
+            case TextureImporterType.Sprite:
+                DisplaySpriteSettings();
                 Display_sRGBSettings();
                 DisplayAlphaSourceSettings();
                 DisplayAdvancedSettings();
                 DisplayWrapAndFilterSettings();
                 break;
-            case TextureType.Cookie:
-                //LightType
+            case TextureImporterType.Cursor:
+                Display_sRGBSettings();
                 DisplayAlphaSourceSettings();
                 DisplayAdvancedSettings();
                 DisplayWrapAndFilterSettings();
                 break;
-            case TextureType.Lightmap:
+            case TextureImporterType.Cookie:
+                DisplayCubeMapSettings();
+                DisplayCookieSettings();
+                DisplayAlphaSourceSettings();
                 DisplayAdvancedSettings();
                 DisplayWrapAndFilterSettings();
                 break;
-            case TextureType.SingleChannel:
+            case TextureImporterType.Lightmap:
+                DisplayAdvancedSettings();
+                DisplayWrapAndFilterSettings();
+                break;
+            case TextureImporterType.SingleChannel:
                 DisplayTextureShape();
                 DisplayAlphaSourceSettings();
                 DisplayAdvancedSettings();
@@ -130,8 +144,8 @@ public class TextureImportGUI
 
     private void DisplayAlphaSourceSettings()
     {
-        alphaSource = (AlphaSource)EditorGUILayout.EnumPopup("Alpha Source", alphaSource);
-        if(alphaSource != AlphaSource.None)
+        alphaSource = (TextureImporterAlphaSource)EditorGUILayout.EnumPopup("Alpha Source", alphaSource);
+        if(alphaSource != TextureImporterAlphaSource.None)
         {
             alphaIsTransparency = EditorGUILayout.Toggle("Alpha Is Transparency", alphaIsTransparency);
         }
@@ -139,8 +153,24 @@ public class TextureImportGUI
 
     private void DisplayTextureShape()
     {
-        shape = (TextureShape)EditorGUILayout.EnumPopup("Texture Shape", shape);
-        //Display Cube Settings
+        textureShape = (TextureImporterShape)EditorGUILayout.EnumPopup("Texture Shape", textureShape);
+        DisplayCubeMapSettings();
+
+    }
+
+    private void DisplayCubeMapSettings()
+    {
+        if (textureShape == TextureImporterShape.TextureCube)
+        {
+            EditorGUI.indentLevel++;
+            mappingType = (MappingType)EditorGUILayout.EnumPopup("Mapping", mappingType);
+            if (textureType == TextureImporterType.Default)
+            {
+                convolutionType = (ConvolutionType)EditorGUILayout.EnumPopup("Convolution Type", convolutionType);
+            }
+            fixupEdgeSeams = EditorGUILayout.Toggle("Fixup Edge Seams", fixupEdgeSeams);
+            EditorGUI.indentLevel--;
+        }
     }
 
     private void DisplayAdvancedSettings()
@@ -149,18 +179,17 @@ public class TextureImportGUI
 
         EditorGUI.indentLevel++;
 
-        nonPowerofTwo = (NonPowerofTwo)EditorGUILayout.EnumPopup("Non Power of 2", nonPowerofTwo);
+        nonPowerofTwo = (TextureImporterNPOTScale)EditorGUILayout.EnumPopup("Non Power of 2", nonPowerofTwo);
         readWriteEnabled = EditorGUILayout.Toggle("Read/Write Enabled", readWriteEnabled);
         generateMipMaps = EditorGUILayout.Toggle("Generate Mip Maps", generateMipMaps);
         if(generateMipMaps)
         {
             EditorGUI.indentLevel++;
             borderMipMaps = EditorGUILayout.Toggle("Border Mip Maps", borderMipMaps);
-            mipMapFiltering = (MipMapFiltering)EditorGUILayout.EnumPopup("Mip Map Filtering", mipMapFiltering);
+            mipMapFiltering = (TextureImporterMipFilter)EditorGUILayout.EnumPopup("Mip Map Filtering", mipMapFiltering);
             fadeoutMipMaps = EditorGUILayout.Toggle("Fadeout Mip Maps", fadeoutMipMaps);
             EditorGUI.indentLevel--;
         }
-
         EditorGUI.indentLevel--;
     }
 
@@ -168,9 +197,54 @@ public class TextureImportGUI
     {
         wrapMode = (WrapMode)EditorGUILayout.EnumPopup("Wrap Mode", wrapMode);
         filterMode = (FilterMode)EditorGUILayout.EnumPopup("Filter Mode", filterMode);
-        if(filterMode != FilterMode.Point)  //TODO update for CUBE Maps
+        if(filterMode != FilterMode.Point)  
         {
             anisoLevel = EditorGUILayout.IntSlider("Aniso Level", anisoLevel, 0, 16);
+        }
+    }
+
+    private void DisplayNormalAlphaFromGrayscaleSettings()
+    {
+        createAlphaFromGrayscale = EditorGUILayout.Toggle("Create from Grayscale", createAlphaFromGrayscale);
+        if(createAlphaFromGrayscale)
+        {
+            EditorGUI.indentLevel++;
+            bumpiness = EditorGUILayout.Slider("Bumpiness", bumpiness, 0.0f, 0.3f);
+            normalBumpFiltering = (NormalBumpFiltering)EditorGUILayout.EnumPopup("Filtering", normalBumpFiltering);
+            EditorGUI.indentLevel--;
+        }
+    }
+
+    private void DisplaySpriteSettings()
+    {
+        spriteMode = (SpriteMode)EditorGUILayout.EnumPopup("Sprite Mode", spriteMode);
+        EditorGUI.indentLevel++;
+        packingTag = EditorGUILayout.TextField("Packing Tag", packingTag);
+        pixelsPerUnit = EditorGUILayout.FloatField("Pixels Per Unit", pixelsPerUnit);
+        meshType = (MeshType)EditorGUILayout.EnumPopup("Mesh Type", meshType);
+        extrudeEdges = EditorGUILayout.IntSlider("Extrude Edges", extrudeEdges, 0, 32);
+
+        if (spriteMode == SpriteMode.Single)
+        {
+            pivot = (Pivot)EditorGUILayout.EnumPopup("Pivot", pivot);
+            if (pivot == Pivot.Custom)
+            {
+                pivotPoint = EditorGUILayout.Vector2Field("Custom Pivot Point", pivotPoint);
+            }
+        }
+        EditorGUI.indentLevel--;
+    }
+
+    private void DisplayCookieSettings()
+    {
+        lightType = (LightType)EditorGUILayout.EnumPopup("Light Type", lightType);
+        if(lightType == LightType.Point)
+        {
+            textureShape = TextureImporterShape.TextureCube;
+        }
+        else
+        {
+            textureShape = TextureImporterShape.Texture2D;
         }
     }
 
