@@ -80,7 +80,6 @@ public class OnImport : EditorWindow
 
         if (GUILayout.Button("Generate"))
         {
-            CreateScript();
         }
     }
     void DisplayModelOptions()
@@ -89,42 +88,7 @@ public class OnImport : EditorWindow
 
         if (GUILayout.Button("Generate"))
         {
-            CreateScript();
         }
     }
 
-    void CreateScript()
-    {
-        string name = scriptName.Replace(" ", "_");
-        name = name.Replace("-", "_");
-        string copyPath = "Assets/Editor/" + name + ".cs";
-        Debug.Log("Creating Classfile: " + copyPath);
-        //if (File.Exists(copyPath) == false)
-      //  { // do not overwrite
-            using (StreamWriter outfile = new StreamWriter(copyPath))
-            {
-                outfile.WriteLine("using UnityEngine;");
-                outfile.WriteLine("using System.Collections;");
-                outfile.WriteLine("using UnityEditor;");
-                outfile.WriteLine("");
-                outfile.WriteLine("public class " + name + " : AssetPostprocessor ");
-                outfile.WriteLine(" {");
-                outfile.WriteLine("     ");
-                outfile.WriteLine("     // Use this for initialization");
-                outfile.WriteLine("     void OnPostprocessTexture (Texture2D texture)");
-                outfile.WriteLine("     {");
-                outfile.WriteLine("         string lowerCaseAssetPath = assetPath.ToLower ();");
-                outfile.WriteLine("         bool isInDirectory = lowerCaseAssetPath.IndexOf (\"/"+ directoryName.ToString() + "/\") != -1;");
-                outfile.WriteLine("         ");
-                outfile.WriteLine("         if (isInDirectory) ");
-                outfile.WriteLine("         {");
-                outfile.WriteLine("             TextureImporter textureImporter = (TextureImporter) assetImporter;");
-                outfile.WriteLine("             textureImporter.textureType = TextureImporterType.Sprite;");
-                outfile.WriteLine("         }");
-                outfile.WriteLine("     }");
-                outfile.WriteLine(" }");
-          //  }//File written
-        }
-        AssetDatabase.Refresh();
-    }
 }
