@@ -7,14 +7,13 @@ public class OnImport : EditorWindow
     string scriptName;
     string directoryName;
     bool groupEnabled;
-    bool myBool = true;
-    float myFloat = 1.23f;
-
     enum AssetType { NotSelected,Audio,Material,Model,Texture}
     AssetType assetType = AssetType.NotSelected;
 
     TextureImportGUI textureImporter;
     AudioImportGUI audioImporter;
+
+    TextureImportScriptCreator textureScriptCreator;
 
 
     // Add menu item named "My Window" to the Window menu
@@ -64,11 +63,16 @@ public class OnImport : EditorWindow
 
     void DisplayTextureOptions()
     {
-        if (textureImporter == null)
-        {
-            textureImporter = new TextureImportGUI();
-        }
+        if (textureImporter == null) textureImporter = new TextureImportGUI();
+
+
+        if (textureScriptCreator == null) textureScriptCreator = new TextureImportScriptCreator();
+
         textureImporter.DisplayGUI();
+        if(GUILayout.Button("Generate"))
+        {
+            textureScriptCreator.CreateScript(scriptName, directoryName, textureImporter);
+        }
     }
     void DisplayMaterialOptions()
     {

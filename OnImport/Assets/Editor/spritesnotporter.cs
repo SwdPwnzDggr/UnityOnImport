@@ -11,9 +11,12 @@ public class spritesnotporter : AssetPostprocessor
          
          if (isInDirectory)
         {
-            Debug.Log("Importing Sprite @ " + lowerCaseAssetPath);
-            TextureImporter textureImporter = (TextureImporter) assetImporter;
-             textureImporter.textureType = TextureImporterType.Sprite;
+           // Debug.Log("Importing Sprite @ " + lowerCaseAssetPath);
+           // TextureImporter textureImporter = (TextureImporter) assetImporter;
+           // textureImporter.cubemapConvolution = TextureImporterCubemapConvolution.Cylindrical;
+           // TextureImporterSettings textureImporterSettings = new TextureImporterSettings();
+           // textureImporter.SetTextureSettings(textureImporterSettings);
+           // TextureImporterType.Singl
          }
      }
 }
