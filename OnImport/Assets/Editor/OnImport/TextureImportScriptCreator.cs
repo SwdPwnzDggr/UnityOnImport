@@ -6,7 +6,6 @@ using UnityEngine;
 
 public class TextureImportScriptCreator
 {
-
     public void CreateScript(string scriptName, string directoryName, TextureImportGUI gUI)
     {
         string name = scriptName.Replace(" ", "_");
@@ -24,7 +23,6 @@ public class TextureImportScriptCreator
             outfile.WriteLine("public class " + name + " : AssetPostprocessor ");
             outfile.WriteLine(" {");
             outfile.WriteLine("     ");
-            outfile.WriteLine("     // Use this for initialization");
             outfile.WriteLine("     void OnPostprocessTexture (Texture2D texture)");
             outfile.WriteLine("     {");
             outfile.WriteLine("         string lowerCaseAssetPath = assetPath.ToLower ();");
